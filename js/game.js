@@ -105,7 +105,7 @@ var randomnumber;
 function boogeyAI() {
 
 	if(boogey_move >= boogey_threshold) {
-		randomnumber = Math.floor(Math.random()*10);
+		randomnumber = Math.floor(Math.random()*5);
 		boogey_move = 0;
 	}
 	else {
@@ -140,7 +140,10 @@ function boogeyAI() {
 }
 
 function calculateStealth() {
-	scoreText.text = "x: " + player.body.position.x + "\ny: " + player.body.position.y;
+	stealth_factor = {
+		"x": Math.abs(player.body.position.x - boogey.body.position.x),
+		"y": Math.abs(player.body.position.y - boogey.body.position.y)
+	};
 }
 
 function update() {
