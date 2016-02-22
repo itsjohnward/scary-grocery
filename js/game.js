@@ -1,187 +1,243 @@
-var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create, update: update });
+var GAME_SIZE = 2;
+var TILE_SIZE = 16;
+
+var game = new Phaser.Game(GAME_SIZE*16*16, GAME_SIZE*16*16, Phaser.AUTO, 'content', {
+  preload: preload,
+  create: create,
+  update: update,
+  render: render
+});
+
+var player = {
+	name: "player",
+	url: "./assets/player.png",
+	moveTime: 0,
+	moveThreshold: 250,
+	x: 2,
+	y: 2,
+	moveLeft: function() {
+		if(!(tiles[x-1][y].collideable)){
+			if(((moveTime + moveThreshold) > game.time.now) )) {
+				x--;
+				moveTime = game.time.now;
+			}
+		}
+		else {
+			// Sound Effect
+		}
+		updateLocation();
+	},
+	moveRight: function() {
+		if(!(tiles[x+1][y].collideable) && ((moveTime + moveThreshold) > game.time.now) ) {
+			x++;
+			moveTime = game.time.now;
+		}
+		updateLocation();
+	},
+	moveUp: function() {
+		if(!(tiles[x][y+1].collideable) && ((moveTime + moveThreshold) > game.time.now) ) {
+			y++;
+			moveTime = game.time.now;
+		}
+		updateLocation();
+	},
+	moveDown: function() {
+		if(!(tiles[x][y-1].collideable) && ((moveTime + moveThreshold) > game.time.now) ) {
+			y--;
+			moveTime = game.time.now;
+		}
+		updateLocation();
+	}
+	updateLocation: function() {
+		this.sprite.x = this.x * GAME_SIZE * TILE_SIZE;
+		this.sprite.y = this.y * GAME_SIZE * TILE_SIZE;
+	}
+};
+var boogey = {
+	name: "boogey",
+	url: "./assets/boogey.png",
+	moveTime: 0,
+	moveThreshold: 250,
+	x: 11,
+	y: 6,
+	moveLeft: function() {
+
+	},
+	moveRight: function() {
+
+	},
+	moveUp: function() {
+
+	},
+	moveDown: function() {
+
+	}
+};
+
+var buttonTime = 0;
+
+function Tile(val, x, y, height, width, collideable) {
+  this.url = tileset[val].url;
+  this.x = x;
+  this.y = y;
+  this.height = height;
+  this.width = width;
+  this.collideable = tileset[val].collideable;
+  var sprite = game.add.sprite(x, y, tileset[val].name);
+  sprite.width = GAME_SIZE * TILE_SIZE;
+  sprite.height = GAME_SIZE * TILE_SIZE;
+}
+
+/*
+	0: Floor
+	1: Wall
+	2: Aisle
+	3: Office
+	4: Register
+	5: Produce
+	6: Meat
+	7: Freezers
+	8: UI Background
+	9: Stealth Bar (8)
+*/
+var level = [
+	[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+	[1, 7, 0, 0, 6, 6, 6, 6, 6, 6, 6, 0, 0, 5, 5, 1],
+	[1, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 1],
+	[1, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 5, 1],
+	[1, 7, 0, 7, 0, 2, 0, 2, 0, 2, 5, 0, 5, 0, 5, 1],
+	[1, 7, 0, 7, 0, 2, 0, 2, 0, 2, 5, 0, 0, 0, 5, 1],
+	[1, 7, 0, 7, 0, 2, 0, 2, 0, 2, 5, 0, 0, 0, 5, 1],
+	[1, 7, 0, 7, 0, 2, 0, 2, 0, 2, 5, 0, 5, 0, 5, 1],
+	[1, 7, 0, 7, 0, 2, 0, 2, 0, 2, 5, 0, 5, 0, 5, 1],
+	[1, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 1],
+	[1, 3, 3, 3, 0, 0, 4, 0, 4, 0, 4, 0, 0, 6, 6, 1],
+	[1, 3, 3, 3, 0, 0, 4, 0, 4, 0, 4, 0, 6, 6, 6, 1],
+	[1, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 6, 6, 6, 1],
+	[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+	[8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8],
+	[8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9, 8, 8, 8, 8]
+]
+
+var tileset = [
+	{
+		name: "floor",
+		url: "./assets/floor.png",
+		collideable: false
+	},
+	{
+		name: "wall",
+		url: "./assets/wall.png",
+		collideable: true
+	},
+	{
+		name: "aisle",
+		url: "./assets/aisle.png",
+		collideable: true
+	},
+	{
+		name: "office",
+		url: "./assets/office.png",
+		collideable: true
+	},
+	{
+		name: "register",
+		url: "./assets/register.png",
+		collideable: true
+	},
+	{
+		name: "produce",
+		url: "./assets/produce.png",
+		collideable: true
+	},
+	{
+		name: "meat",
+		url: "./assets/meat.png",
+		collideable: true
+	},
+	{
+		name: "freezer",
+		url: "./assets/freezer.png",
+		collideable: true
+	},
+	{
+		name: "ui_bg",
+		url: "./assets/ui-bg.png",
+		collideable: true
+	},
+	{
+		name: "stealth_bar",
+		url: "./assets/stealth-bar.png",
+		collideable: true
+	}
+];
+
+var tiles = []
 
 function preload() {
-	game.load.image('sky', './assets/sky.png');
-	game.load.image('ground', './assets/platform.png');
-	game.load.image('star', './assets/star.png');
-	game.load.spritesheet('dude', './assets/dude.png', 32, 48);
+	for (i in tileset) {
+		game.load.image(tileset[i].name, tileset[i].url);
+	}
+	game.load.image(tileset[i].name, tileset[i].url);
+	game.load.spritesheet(player.name, player.url, 32, 48);
+	game.load.spritesheet(boogey.name, boogey.url, 32, 32);
 }
-
-var shelves;
-var player;
-var boogey;
-var keys;
-
-var stealth_factor;
-
-var score = 0;
-var scoreText;
-
-var dead = false;
 
 function create() {
-
-	game.physics.startSystem(Phaser.Physics.ARCADE);
-
-	game.add.sprite(0,0,'sky');
-
-	shelves = game.add.group();
-	shelves.enableBody = true;
-
-	var ground = shelves.create(0, game.world.height - 32, 'ground');
-	ground.scale.setTo(2,2);
-	ground.body.immovable = true;
-
-	ground = shelves.create(0, 0, 'ground');
-	ground.scale.setTo(0.1,32);
-	ground.body.immovable = true;
-	ground = shelves.create(game.world.width-32, 0, 'ground');
-	ground.scale.setTo(0.1,32);
-	ground.body.immovable = true;
-
-	ground = shelves.create(0, -32, 'ground');
-	ground.scale.setTo(2,2);
-	ground.body.immovable = true;
-
-	var ledge = shelves.create(200, 100, 'ground');
-	ledge.body.immovable = true;
-		ledge = shelves.create(200, 180, 'ground');
-	ledge.body.immovable = true;
-	var ledge = shelves.create(200, 260, 'ground');
-	ledge.body.immovable = true;
-	ledge = shelves.create(200, 340, 'ground');
-	ledge.body.immovable = true;
-
-	var ledge = shelves.create(250, 450, 'ground');
-	ledge.scale.setTo(0.2,2);
-	ledge.body.immovable = true;
-	ledge = shelves.create(500, 450, 'ground');
-	ledge.scale.setTo(0.2,2);
-	ledge.body.immovable = true;
-
-	// v PLAYER
-
-	player = game.add.sprite(32, game.world.height - 150, 'dude');
-	player.scale.setTo(0.8, 0.8);
-
-	game.physics.arcade.enable(player);
-
-	player.body.bounce.y = 0.2;
-	player.body.collideWorldBounds = true;
-
-	player.animations.add('left', [0,1,2,3], 10, true);
-	player.animations.add('right', [5,6,7,8], 10, true);
-
-	// ^ PLAYER | v BOOGEY
-
-	boogey = game.add.sprite(100, game.world.height - 150, 'dude');
-	boogey.scale.setTo(0.8, 0.8);
-
-	game.physics.arcade.enable(boogey);
-
-	boogey.body.bounce.y = 0.2;
-	boogey.body.collideWorldBounds = true;
-
-	boogey.animations.add('left', [0,1,2,3], 10, true);
-	boogey.animations.add('right', [5,6,7,8], 10, true);
-
-	// ^ BOOGEY
-
-	keys = {
-		up: game.input.keyboard.addKey(Phaser.Keyboard.W),
-	    down: game.input.keyboard.addKey(Phaser.Keyboard.S),
-	    left: game.input.keyboard.addKey(Phaser.Keyboard.A),
-	    right: game.input.keyboard.addKey(Phaser.Keyboard.D)
-	};
-
-	scoreText = game.add.text(16, 16, 'Run!', { fontSize: '32px', fill: '#000' });
-}
-
-var boogey_threshold = 20;
-var boogey_move = boogey_threshold;
-var boogey_speed = 400;
-var randomnumber;
-
-function boogeyAI() {
-
-	if(boogey_move >= boogey_threshold) {
-		randomnumber = Math.floor(Math.random()*5);
-		boogey_move = 0;
-	}
-	else {
-		boogey_move++;
+	cursors = game.input.keyboard.createCursorKeys();
+	var x, y;
+	y = 0;
+	for(i in level) {
+		x = 0;
+		var temp = [];
+		for (j in level[i]) {
+			temp.push(new Tile(level[i][j], x, y));
+			x += GAME_SIZE * TILE_SIZE;
+		}
+		tiles.push(temp);
+		y += GAME_SIZE * TILE_SIZE;
 	}
 
-	if (randomnumber == 1) {
-		boogey.body.velocity.x = -boogey_speed;
-	}
-	else if (randomnumber == 2) {
-		boogey.body.velocity.x = boogey_speed;
-	}
-	else {
-		boogey.animations.stop();
-		boogey.frame = 4;
-		boogey.body.velocity.x = 0;
-	}
-	if (randomnumber == 3) {
-		boogey.body.velocity.y = -boogey_speed;
-	}
-	else if (randomnumber == 4) {
-		boogey.body.velocity.y = boogey_speed;
-	}
-	else {
-		boogey.animations.stop();
-		boogey.frame = 4;
-		boogey.body.velocity.y = 0;
-	}
-	if(!dead) {
-		calculateStealth();
-	}
-}
 
-function calculateStealth() {
-	stealth_factor = {
-		"x": Math.abs(player.body.position.x - boogey.body.position.x),
-		"y": Math.abs(player.body.position.y - boogey.body.position.y)
-	};
+	/*
+
+		v UPDATE LOCATION PARAMETERS
+			Since x and y were added to player object
+
+	*/
+
+	player.sprite = game.add.sprite(player.x, player.y, player.name);
+	console.log(player.sprite.width);
+	player.sprite.width = TILE_SIZE * GAME_SIZE;
+	player.sprite.height = TILE_SIZE * GAME_SIZE;
+	console.log(player.sprite.height);
+	boogey.sprite = game.add.sprite(tiles[11][6].x, tiles[11][6].y, boogey.name);
+	boogey.sprite.width = TILE_SIZE * GAME_SIZE;
+	boogey.sprite.height = TILE_SIZE * GAME_SIZE;
 }
 
 function update() {
+	/*
+		CHANGE TO OBJECT MOVEMENT METHODS
+	*/
 
-	game.physics.arcade.collide(player, shelves);
-	game.physics.arcade.collide(boogey, shelves);
-
-	game.physics.arcade.overlap(player, boogey, boogey_kill, null, this);
-
-	if (keys["left"].isDown) {
-		player.body.velocity.x = -150;
+	if (game.input.keyboard.isDown(Phaser.Keyboard.W)) {
+		player.sprite.y += TILE_SIZE * GAME_SIZE;
 	}
-	else if (keys["right"].isDown) {
-		player.body.velocity.x = 150;
+	else if (game.input.keyboard.isDown(Phaser.Keyboard.A)) {
+		player.sprite.x -= TILE_SIZE * GAME_SIZE;
 	}
-	else {
-		player.animations.stop();
-		player.frame = 4;
-		player.body.velocity.x = 0;
+	else if (game.input.keyboard.isDown(Phaser.Keyboard.S)) {
+		player.sprite.y -= TILE_SIZE * GAME_SIZE;
 	}
-	if (keys["up"].isDown) {
-		player.body.velocity.y = -150;
-	}
-	else if (keys["down"].isDown) {
-		player.body.velocity.y = 150;
-	}
-	else {
-		player.animations.stop();
-		player.frame = 4;
-		player.body.velocity.y = 0;
+	else if (game.input.keyboard.isDown(Phaser.Keyboard.D)) {
+		player.sprite.x += TILE_SIZE * GAME_SIZE;
 	}
 
-	boogeyAI();
 
+	// Add Boogey Movement
 }
 
-function boogey_kill(player, boogey) {
-	player.kill();
-	dead = true;
-	scoreText.text = 'You Died';
+function render() {
+
 }
