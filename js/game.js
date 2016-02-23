@@ -3,6 +3,8 @@ var TILE_SIZE = 16;
 var ROTATIONS = ["left", "right", "up", "down"];
 var player, boogey, opponent;
 
+var scoreText;
+
 var game = new Phaser.Game(GAME_SIZE*16*16, GAME_SIZE*16*16, Phaser.AUTO, 'content', {
   preload: preload,
   create: create,
@@ -85,7 +87,7 @@ function Sprite(name, url, x, y) {
 	this.moveTime = 0;
 	this.moveThreshold = 250;
 	this.rotation = 0;
-
+	this.dead = false;
 }
 
 function AI(sprite) {
@@ -140,7 +142,11 @@ function AI(sprite) {
 				this.speed *= 2;
 			}
 		}
-		//console.log(this.possibleMoves);
+		if(player.x == boogey.x && player.y == boogey.y) {
+			//player.sprite.kill();
+			player.dead = true;
+			scoreText.text = 'You Ded';
+		}
 	}
 	this.decide = function() {
 		this.checkFreeSpaces();
@@ -281,21 +287,24 @@ function create() {
 	player = new Sprite("player", "./assets/player.png", 2, 2);
 	boogey = new Sprite("boogey", "./assets/boogey.png", 11, 6);
 	opponent = new AI(boogey);
+
+	scoreText = game.add.text(coord_to_pixels(7), coord_to_pixels(14), 'Run!', { fontSize: '24px', fill: '#fff' });
+	scoreText.anchor.setTo(0.5,0.5);
 	//console.log(player.sprite.height);
 }
 
 function update() {
 
-	if (game.input.keyboard.isDown(Phaser.Keyboard.W)) {
+	if (game.input.keyboard.isDown(Phaser.Keyboard.W) && !player.dead) {
 		player.move("up");
 	}
-	else if (game.input.keyboard.isDown(Phaser.Keyboard.A)) {
+	else if (game.input.keyboard.isDown(Phaser.Keyboard.A) && !player.dead) {
 		player.move("left");
 	}
-	else if (game.input.keyboard.isDown(Phaser.Keyboard.S)) {
+	else if (game.input.keyboard.isDown(Phaser.Keyboard.S) && !player.dead) {
 		player.move("down");
 	}
-	else if (game.input.keyboard.isDown(Phaser.Keyboard.D)) {
+	else if (game.input.keyboard.isDown(Phaser.Keyboard.D) && !player.dead) {
 		player.move("right");
 	}
 
