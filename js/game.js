@@ -16,41 +16,94 @@ var player = {
 	x: 2,
 	y: 2,
 	moveLeft: function() {
-		if(!(tiles[x-1][y].collideable)){
-			if(((moveTime + moveThreshold) > game.time.now) )) {
-				x--;
-				moveTime = game.time.now;
+		console.log("x: " + this.x + " / y: " + this.y);
+		if(!(tiles[this.y][this.x-1].collideable)){
+			console.log("moveLeft");
+			if((this.moveTime + this.moveThreshold) < game.time.now) {
+				this.x--;
+				this.moveTime = game.time.now;
+				console.log("x: " + this.x + " / y: " + this.y);
+			}
+			else {
+				console.log("move: " + this.moveTime+this.moveThreshold + " / game: " + game.time.now);
 			}
 		}
 		else {
+			console.log("can't moveLeft");
+			console.log(tiles[this.y][this.x-1]);
 			// Sound Effect
 		}
-		updateLocation();
+		this.updateLocation();
 	},
 	moveRight: function() {
-		if(!(tiles[x+1][y].collideable) && ((moveTime + moveThreshold) > game.time.now) ) {
-			x++;
-			moveTime = game.time.now;
+		console.log("x: " + this.x + " / y: " + this.y);
+		if(!(tiles[this.y][this.x+1].collideable)){
+			console.log("moveRight");
+			if((this.moveTime + this.moveThreshold) < game.time.now) {
+				this.x++;
+				this.moveTime = game.time.now;
+				console.log("x: " + this.x + " / y: " + this.y);
+			}
+			else {
+				console.log("move: " + this.moveTime+this.moveThreshold + " / game: " + game.time.now);
+			}
 		}
-		updateLocation();
+		else {
+			console.log("can't moveRight");
+			console.log(tiles[this.y][this.x+1]);
+			// Sound Effect
+		}
+		this.updateLocation();
 	},
 	moveUp: function() {
-		if(!(tiles[x][y+1].collideable) && ((moveTime + moveThreshold) > game.time.now) ) {
-			y++;
-			moveTime = game.time.now;
+		console.log("x: " + this.x + " / y: " + this.y);
+		if(!(tiles[this.y-1][this.x].collideable)){
+			console.log("moveUp");
+			if((this.moveTime + this.moveThreshold) < game.time.now) {
+				this.y--;
+				this.moveTime = game.time.now;
+				console.log("x: " + this.x + " / y: " + this.y);
+			}
+			else {
+				console.log("move: " + this.moveTime+this.moveThreshold + " / game: " + game.time.now);
+			}
 		}
-		updateLocation();
+		else {
+			console.log("can't moveUp");
+			console.log(tiles[this.y-1][this.x]);
+			// Sound Effect
+		}
+		this.updateLocation();
 	},
 	moveDown: function() {
-		if(!(tiles[x][y-1].collideable) && ((moveTime + moveThreshold) > game.time.now) ) {
-			y--;
-			moveTime = game.time.now;
+		console.log("x: " + this.x + " / y: " + this.y);
+		if(!(tiles[this.y+1][this.x].collideable)){
+			console.log("moveDown");
+			if((this.moveTime + this.moveThreshold) < game.time.now) {
+				this.y++;
+				this.moveTime = game.time.now;
+				console.log("x: " + this.x + " / y: " + this.y);
+			}
+			else {
+				console.log("move: " + this.moveTime+this.moveThreshold + " / game: " + game.time.now);
+			}
 		}
-		updateLocation();
-	}
+		else {
+			console.log("can't moveDown");
+			console.log(tiles[this.y+1][this.x]);
+			// Sound Effect
+		}
+		this.updateLocation();
+	},
 	updateLocation: function() {
-		this.sprite.x = this.x * GAME_SIZE * TILE_SIZE;
-		this.sprite.y = this.y * GAME_SIZE * TILE_SIZE;
+		this.sprite.x = this.getX();
+		this.sprite.y = this.getY();
+	},
+	getX: function() {
+		return this.x * GAME_SIZE * TILE_SIZE;
+	},
+	getY: function() {
+		return this.y * GAME_SIZE * TILE_SIZE;
 	}
 };
 var boogey = {
@@ -112,8 +165,8 @@ var level = [
 	[1, 7, 0, 7, 0, 2, 0, 2, 0, 2, 5, 0, 5, 0, 5, 1],
 	[1, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 1],
 	[1, 3, 3, 3, 0, 0, 4, 0, 4, 0, 4, 0, 0, 6, 6, 1],
-	[1, 3, 3, 3, 0, 0, 4, 0, 4, 0, 4, 0, 6, 6, 6, 1],
-	[1, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 6, 6, 6, 1],
+	[1, 3, 3, 3, 0, 0, 4, 0, 4, 0, 4, 0, 6, 0, 0, 1],
+	[1, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 6, 0, 0, 1],
 	[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
 	[8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8],
 	[8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9, 8, 8, 8, 8]
@@ -206,7 +259,7 @@ function create() {
 
 	*/
 
-	player.sprite = game.add.sprite(player.x, player.y, player.name);
+	player.sprite = game.add.sprite(player.getX(), player.getY(), player.name);
 	console.log(player.sprite.width);
 	player.sprite.width = TILE_SIZE * GAME_SIZE;
 	player.sprite.height = TILE_SIZE * GAME_SIZE;
@@ -217,21 +270,18 @@ function create() {
 }
 
 function update() {
-	/*
-		CHANGE TO OBJECT MOVEMENT METHODS
-	*/
 
 	if (game.input.keyboard.isDown(Phaser.Keyboard.W)) {
-		player.sprite.y += TILE_SIZE * GAME_SIZE;
+		player.moveUp();
 	}
 	else if (game.input.keyboard.isDown(Phaser.Keyboard.A)) {
-		player.sprite.x -= TILE_SIZE * GAME_SIZE;
+		player.moveLeft();
 	}
 	else if (game.input.keyboard.isDown(Phaser.Keyboard.S)) {
-		player.sprite.y -= TILE_SIZE * GAME_SIZE;
+		player.moveDown();
 	}
 	else if (game.input.keyboard.isDown(Phaser.Keyboard.D)) {
-		player.sprite.x += TILE_SIZE * GAME_SIZE;
+		player.moveRight();
 	}
 
 
