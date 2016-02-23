@@ -1,7 +1,7 @@
 var GAME_SIZE = 2;
 var TILE_SIZE = 16;
 var ROTATIONS = ["left", "right", "up", "down"];
-var player, boogey;
+var player, boogey, opponent;
 
 var game = new Phaser.Game(GAME_SIZE*16*16, GAME_SIZE*16*16, Phaser.AUTO, 'content', {
   preload: preload,
@@ -9,6 +9,10 @@ var game = new Phaser.Game(GAME_SIZE*16*16, GAME_SIZE*16*16, Phaser.AUTO, 'conte
   update: update,
   render: render
 });
+
+function coord_to_pixels(c) {
+	return c * GAME_SIZE * TILE_SIZE + TILE_SIZE/2;
+}
 
 function Sprite(name, url, x, y) {
 	this.move = function(direction) {
@@ -48,7 +52,20 @@ function Sprite(name, url, x, y) {
 		this.sprite.x = this.getX(); // ADD LERP
 		this.sprite.y = this.getY(); // ADD LERP
 		//console.log(this.sprite.scale.x);
-		this.sprite.scale.x = Math.abs(this.sprite.scale.x) - (this.rotation % 2) * 2 * Math.abs(this.sprite.scale.x);
+		//this.sprite.scale.x = Math.abs(this.sprite.scale.x) - (this.rotation % 2) * 2 * Math.abs(this.sprite.scale.x);
+		if(ROTATIONS[this.rotation] == "up") {
+			this.sprite.angle = 90;
+			this.sprite.scale.x = Math.abs(this.sprite.scale.x);
+		} else if(ROTATIONS[this.rotation] == "down"){
+			this.sprite.angle = -90;
+			this.sprite.scale.x = Math.abs(this.sprite.scale.x);
+		} else if(ROTATIONS[this.rotation] == "left") {
+			this.sprite.angle = 0;
+			this.sprite.scale.x = Math.abs(this.sprite.scale.x);
+		} else if(ROTATIONS[this.rotation] == "right") {
+			this.sprite.angle = 0;
+			this.sprite.scale.x = -Math.abs(this.sprite.scale.x);
+		}
 	}
 	this.getX = function() {
 		return this.x * GAME_SIZE * TILE_SIZE + TILE_SIZE/2;
@@ -71,6 +88,73 @@ function Sprite(name, url, x, y) {
 
 }
 
+function AI(sprite) {
+	this.sprite = sprite;
+	this.speed = 1.5;
+	this.preferences = {
+		x: 0,
+		y: 0
+	}
+	this.sighted = false;
+	this.possibleMoves = [];
+	this.checkFreeSpaces = function() {
+		var x = sprite.x;
+		var y = sprite.y;
+		this.possibleMoves = [];
+		this.sighted = false;
+		while(!(tiles[y--][x].collideable)) {
+			this.possibleMoves.push(ROTATIONS.indexOf("up"));
+			if(player.x == x && player.y == y) {
+				this.sighted = true;
+				this.possibleMoves = [ROTATIONS.indexOf("up")];
+				this.speed *= 2;
+			}
+		}
+		x = sprite.x;
+		y = sprite.y;
+		while(!(tiles[y++][x].collideable) && !this.sighted) {
+			this.possibleMoves.push(ROTATIONS.indexOf("down"));
+			if(player.x == x && player.y == y) {
+				this.sighted = true;
+				this.possibleMoves = [ROTATIONS.indexOf("down")];
+				this.speed *= 2;
+			}
+		}
+		x = sprite.x;
+		y = sprite.y;
+		while(!(tiles[y][x++].collideable) && !this.sighted) {
+			this.possibleMoves.push(ROTATIONS.indexOf("right"));
+			if(player.x == x && player.y == y) {
+				this.sighted = true;
+				this.possibleMoves = [ROTATIONS.indexOf("right")];
+				this.speed *= 2;
+			}
+		}
+		x = sprite.x;
+		y = sprite.y;
+		while(!(tiles[y][x--].collideable) && !this.sighted) {
+			this.possibleMoves.push(ROTATIONS.indexOf("left"));
+			if(player.x == x && player.y == y) {
+				this.sighted = true;
+				this.possibleMoves = [ROTATIONS.indexOf("left")];
+				this.speed *= 2;
+			}
+		}
+		//console.log(this.possibleMoves);
+	}
+	this.decide = function() {
+		this.checkFreeSpaces();
+		var move = Math.floor(Math.random() * this.possibleMoves.length);
+		sprite.move(
+			ROTATIONS[
+				this.possibleMoves[
+					Math.floor(Math.random() * this.possibleMoves.length)
+				]
+			]
+		);
+	}
+}
+
 function Tile(val, x, y, height, width, collideable) {
   this.url = tileset[val].url;
   this.x = x;
@@ -78,7 +162,8 @@ function Tile(val, x, y, height, width, collideable) {
   this.height = height;
   this.width = width;
   this.collideable = tileset[val].collideable;
-  var sprite = game.add.sprite(x, y, tileset[val].name);
+  var sprite = game.add.sprite(coord_to_pixels(x), coord_to_pixels(y), tileset[val].name);
+  sprite.anchor.setTo(0.5, 0.5);
   sprite.width = GAME_SIZE * TILE_SIZE;
   sprite.height = GAME_SIZE * TILE_SIZE;
 }
@@ -187,14 +272,15 @@ function create() {
 		var temp = [];
 		for (j in level[i]) {
 			temp.push(new Tile(level[i][j], x, y));
-			x += GAME_SIZE * TILE_SIZE;
+			x++;
 		}
 		tiles.push(temp);
-		y += GAME_SIZE * TILE_SIZE;
+		y ++;
 	}
 
 	player = new Sprite("player", "./assets/player.png", 2, 2);
 	boogey = new Sprite("boogey", "./assets/boogey.png", 11, 6);
+	opponent = new AI(boogey);
 	//console.log(player.sprite.height);
 }
 
@@ -214,7 +300,7 @@ function update() {
 	}
 
 
-	// Add Boogey Movement
+	opponent.decide();
 }
 
 function render() {
